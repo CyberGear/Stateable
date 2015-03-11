@@ -1,6 +1,7 @@
 package lt.cybergear.stateable;
 
 import android.os.Bundle;
+import android.support.v4.util.LruCache;
 import android.util.Log;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -25,6 +26,8 @@ public class StateUtil {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final TypeFactory FACTORY = MAPPER.getTypeFactory();
+
+    private static final LruCache<String, List<Field>> fieldCache = new LruCache<>(300);
 
     static {
         MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -62,13 +65,19 @@ public class StateUtil {
     }
 
     private static List<Field> getAccessibleStateFields(Object stateable) {
-        List<Field> fields = new ArrayList<>();
+        String cacheKey = stateable.getClass().getCanonicalName();
+        List<Field> fields = fieldCache.get(cacheKey);
+        if (fields != null) {
+            return fields;
+        }
+        fields = new ArrayList<>();
         for (Field field : stateable.getClass().getDeclaredFields()) {
             if (field.isAnnotationPresent(StateVariable.class)) {
                 field.setAccessible(true);
                 fields.add(field);
             }
         }
+        fieldCache.put(cacheKey, fields);
         return fields;
     }
 

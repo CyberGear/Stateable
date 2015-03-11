@@ -2,8 +2,8 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
 
 group = 'lt.cybergear'
-version = '0.0.1'
-Integer vCode = 1
+version = '0.0.2'
+Integer vCode = 2
 
 android {
     compileSdkVersion 21
@@ -33,4 +33,5 @@ install {
 
 dependencies {
     compile 'com.fasterxml.jackson.core:jackson-databind:2.4.4'
+    compile 'com.android.support:support-v4:21.0.3'
 }

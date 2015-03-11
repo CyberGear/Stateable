@@ -1,5 +1,9 @@
 # CyberGear Stateable
 
+*Version:* ***0.0.2***, *Min SDK version:* ***10*** *(* *Android:* ***2.3.3*** *)*
+
+ - added some caching for faster working with reflection
+
 *Version:* ***0.0.1***, *Min SDK version:* ***10*** *(* *Android:* ***2.3.3*** *)*
 
 ---
@@ -26,7 +30,7 @@ module build.gradle
 ```Groovy
 dependencies {
     ...
-    compile 'lt.cybergear:stateable:0.0.1'
+    compile 'lt.cybergear:stateable:0.0.2'
 }
 ```
 
@@ -36,7 +40,7 @@ dependencies {
 public class MainActivity extends ActionBarActivity {
 
     @StateVariable
-    Collection<String> strings2;
+    List<String> someVariableJouDontWantToLose;
 
     @Override
     protected void onCreate(Bundle savedState) {
