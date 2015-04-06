@@ -15,6 +15,8 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
+import lt.cybergear.stateable.datatype.BitmapModule;
+
 /**
  * Created by Marius Kavoliūnas on 14.10.14.
  */
@@ -25,7 +27,6 @@ public class StateUtil {
     private static final String KEY_PREFIX = "SU.";
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final TypeFactory FACTORY = MAPPER.getTypeFactory();
 
     private static final LruCache<String, List<Field>> fieldCache = new LruCache<>(300);
 
@@ -35,6 +36,7 @@ public class StateUtil {
         MAPPER.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
         MAPPER.configure(SerializationFeature.WRITE_ENUMS_USING_INDEX, true);
         MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        MAPPER.registerModule(new BitmapModule());
     }
 
     public static void setDebug(boolean isDebug) {
@@ -43,6 +45,10 @@ public class StateUtil {
 
     public static void setSaveNulls(boolean saveNulls) {
         StateUtil.saveNulls = saveNulls;
+    }
+
+    public static ObjectMapper getMapper() {
+        return MAPPER;
     }
 
     public static void saveState(Object stateable, Bundle outState) {
