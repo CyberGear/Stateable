@@ -8,14 +8,14 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.type.TypeFactory;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
-import lt.cybergear.stateable.datatype.BitmapModule;
+import lt.cybergear.stateable.datatype.AndroidBitmapModule;
 
 /**
  * Created by Marius Kavoliūnas on 14.10.14.
@@ -23,6 +23,7 @@ import lt.cybergear.stateable.datatype.BitmapModule;
 public class StateUtil {
     private static final String TAG = StateUtil.class.getSimpleName();
     private static boolean isDebug = false;
+    private static boolean throwExceptions = true;
     private static boolean saveNulls = false;
     private static final String KEY_PREFIX = "SU.";
 
@@ -36,11 +37,16 @@ public class StateUtil {
         MAPPER.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
         MAPPER.configure(SerializationFeature.WRITE_ENUMS_USING_INDEX, true);
         MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        MAPPER.registerModule(new BitmapModule());
+        MAPPER.setTimeZone(Calendar.getInstance().getTimeZone());
+        MAPPER.registerModule(new AndroidBitmapModule());
     }
 
     public static void setDebug(boolean isDebug) {
         StateUtil.isDebug = isDebug;
+    }
+
+    public static void setThrowExceptions(boolean throwExceptions) {
+        StateUtil.throwExceptions = throwExceptions;
     }
 
     public static void setSaveNulls(boolean saveNulls) {
@@ -54,20 +60,20 @@ public class StateUtil {
     public static void saveState(Object stateable, Bundle outState) {
         List<Field> stateFields = getAccessibleStateFields(stateable);
         for (Field field : stateFields) {
-            putField(field, stateable, outState);
+            pushField(field, stateable, outState);
         }
-        printBundleIfDebug("saveState", outState);
+        printBundleIfDebug("saveState: " + stateable.getClass(), outState);
     }
 
-    public static void restoreState(Object statable, Bundle savedState) {
+    public static void restoreState(Object stateable, Bundle savedState) {
         if (savedState == null) {
             return;
         }
-        List<Field> stateFields = getAccessibleStateFields(statable);
+        List<Field> stateFields = getAccessibleStateFields(stateable);
         for (Field field : stateFields) {
-            pullField(field, statable, savedState);
+            pullField(field, stateable, savedState);
         }
-        printBundleIfDebug("restoreState", savedState);
+        printBundleIfDebug("restoreState: " + stateable.getClass(), savedState);
     }
 
     private static List<Field> getAccessibleStateFields(Object stateable) {
@@ -87,16 +93,20 @@ public class StateUtil {
         return fields;
     }
 
-    private static void putField(Field field, Object stateable, Bundle outState) {
+    private static void pushField(Field field, Object stateable, Bundle outState) {
         try {
             Object value = field.get(stateable);
             if (value != null || saveNulls) {
                 outState.putString(KEY_PREFIX + field.getName(), MAPPER.writeValueAsString(value));
             }
         } catch (IOException e) {
-            Log.e(TAG, "Json mapping error: " + field.getName(), e);
+            if (isDebug && throwExceptions) {
+                throw new StateableException("Json mapping error: " + field.getName(), e);
+            }
         } catch (IllegalAccessException e) {
-            Log.e(TAG, "Inaccessible field", e);
+            if (isDebug && throwExceptions) {
+                throw new StateableException("Inaccessible field: " + field.getName(), e);
+            }
         }
     }
 
@@ -104,11 +114,17 @@ public class StateUtil {
         try {
             setField(field, stateable, savedState);
         } catch (IllegalAccessException e) {
-            Log.e(TAG, "Inaccessible field", e);
+            if (isDebug && throwExceptions) {
+                throw new StateableException("Inaccessible field: " + field.getName(), e);
+            }
         } catch (IOException e) {
-            Log.e(TAG, "Json mapping error", e);
+            if (isDebug && throwExceptions) {
+                throw new StateableException("Json mapping error: " + field.getName(), e);
+            }
         } catch (Exception e) {
-            throw new RuntimeException("Unknown exception on " + field.getName() + " in class " + stateable.getClass().getName(), e);
+            if (isDebug && throwExceptions) {
+                throw new StateableException("Unknown exception on " + field.getName() + " in class " + stateable.getClass().getName(), e);
+            }
         }
     }
 

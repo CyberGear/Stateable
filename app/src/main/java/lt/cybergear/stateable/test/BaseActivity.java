@@ -2,6 +2,7 @@ package lt.cybergear.stateable.test;
 
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -17,6 +18,7 @@ public class BaseActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedState) {
         super.onCreate(savedState);
+        Log.e("TAGGAS", "Jonas " + getClass().getName());
         StateUtil.setDebug(BuildConfig.DEBUG);
         StateUtil.restoreState(this, savedState);
     }
