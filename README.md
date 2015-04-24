@@ -1,5 +1,18 @@
 # CyberGear Stateable
 
+*Version:* ***0.0.3***, *Min SDK version:* ***10*** *(* *Android:* ***2.3.3*** *)*
+
+ - Collecting StateVariables through all parents.
+ - Added Bitmap serializer.
+ - StateUtil ObjectMapper become accessible for customizations.
+ - Do not lose time zone after restoring dates (tested with Joda module)
+ - Improved logging (you can add your apps prefix to tag)
+ - You can set tag right padding (it is useful while watching through terminal)
+ - On some fails to map variables throws StateableException
+ - You can prevent StateUtil to throw exception on mapping errors
+ - It is possible to save nulls to state
+ - Fixed bugs while getting list item type
+
 *Version:* ***0.0.2***, *Min SDK version:* ***10*** *(* *Android:* ***2.3.3*** *)*
 
  - added some caching for faster working with reflection

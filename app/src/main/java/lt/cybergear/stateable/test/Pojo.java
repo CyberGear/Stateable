@@ -12,6 +12,12 @@ public class Pojo {
     public Pojo() {
     }
 
+    public Pojo(String one, Integer two, String three) {
+        this.one = one;
+        this.two = two;
+        this.three = three;
+    }
+
     public String getOne() {
         return one;
     }
@@ -34,5 +40,10 @@ public class Pojo {
 
     public void setThree(String three) {
         this.three = three;
+    }
+
+    @Override
+    public String toString() {
+        return one+";"+two+";"+three;
     }
 }

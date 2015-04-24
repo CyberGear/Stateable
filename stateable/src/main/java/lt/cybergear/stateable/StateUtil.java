@@ -6,11 +6,13 @@ import android.util.Log;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -22,10 +24,13 @@ import lt.cybergear.stateable.datatype.AndroidBitmapModule;
  */
 public class StateUtil {
     private static final String TAG = StateUtil.class.getSimpleName();
+    private static final String KEY_PREFIX = "SU.";
+
     private static boolean isDebug = false;
+    private static String debugTagPrefix = "";
+    private static int debugTagRightPadding = 1;
     private static boolean throwExceptions = true;
     private static boolean saveNulls = false;
-    private static final String KEY_PREFIX = "SU.";
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -39,6 +44,16 @@ public class StateUtil {
         MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         MAPPER.setTimeZone(Calendar.getInstance().getTimeZone());
         MAPPER.registerModule(new AndroidBitmapModule());
+    }
+
+    public static void setDebug(boolean isDebug, String debugTagPrefix, int debugTagRightPadding) {
+        StateUtil.setDebug(isDebug, debugTagPrefix);
+        StateUtil.debugTagRightPadding = debugTagRightPadding;
+    }
+
+    public static void setDebug(boolean isDebug, String debugTagPrefix) {
+        StateUtil.setDebug(isDebug);
+        StateUtil.debugTagPrefix = debugTagPrefix + "_";
     }
 
     public static void setDebug(boolean isDebug) {
@@ -83,14 +98,22 @@ public class StateUtil {
             return fields;
         }
         fields = new ArrayList<>();
-        for (Field field : stateable.getClass().getDeclaredFields()) {
+        // TODO: could need some optimizations
+        collectFieldsFromClassToList(stateable.getClass(), fields);
+        fieldCache.put(cacheKey, fields);
+        return fields;
+    }
+
+    private static void collectFieldsFromClassToList(Class<?> aClass, List<Field> fields) {
+        for (Field field : aClass.getDeclaredFields()) {
             if (field.isAnnotationPresent(StateVariable.class)) {
                 field.setAccessible(true);
                 fields.add(field);
             }
         }
-        fieldCache.put(cacheKey, fields);
-        return fields;
+        if (aClass.getSuperclass() != null) {
+            collectFieldsFromClassToList(aClass.getSuperclass(), fields);
+        }
     }
 
     private static void pushField(Field field, Object stateable, Bundle outState) {
@@ -112,7 +135,7 @@ public class StateUtil {
 
     private static void pullField(Field field, Object stateable, Bundle savedState) {
         try {
-            setField(field, stateable, savedState);
+            setFieldToStateableFromBundle(field, stateable, savedState);
         } catch (IllegalAccessException e) {
             if (isDebug && throwExceptions) {
                 throw new StateableException("Inaccessible field: " + field.getName(), e);
@@ -128,26 +151,32 @@ public class StateUtil {
         }
     }
 
-    private static void setField(Field field, Object stateable, Bundle state
-    ) throws IOException, IllegalAccessException {
+    private static void setFieldToStateableFromBundle(Field field, Object stateable, Bundle state) throws IOException, IllegalAccessException {
         if (state.containsKey(KEY_PREFIX + field.getName())) {
+            JavaType javaType;
+            if (field.getGenericType() instanceof ParameterizedType) {
+                javaType = MAPPER.getTypeFactory().constructType(field.getGenericType());
+            } else {
+                javaType = MAPPER.getTypeFactory().constructType(field.getType());
+            }
             field.set(
                     stateable,
-                    MAPPER.readValue(state.getString(KEY_PREFIX + field.getName()), field.getType())
+                    MAPPER.readValue(state.getString(KEY_PREFIX + field.getName()), javaType)
             );
         }
     }
 
     private static void printBundleIfDebug(String tag, Bundle outState) {
         if (isDebug) {
-            Log.d(TAG, tag + ":");
-            Log.d(TAG, "| {   ");
+            String globalTag = String.format("%1$-" + debugTagRightPadding + "s", debugTagPrefix + TAG);
+            Log.d(globalTag, "| " + tag);
+            Log.d(globalTag, "| {");
             for (String key : outState.keySet()) {
                 if (key.startsWith(KEY_PREFIX)) {
-                    Log.d(TAG, "|     " + key.substring(KEY_PREFIX.length()) + " : " + outState.get(key) + " ;");
+                    Log.d(globalTag, "|     " + key.substring(KEY_PREFIX.length()) + " : " + outState.get(key) + " ;");
                 }
             }
-            Log.d(TAG, "| }");
+            Log.d(globalTag, "| }");
         }
     }
 

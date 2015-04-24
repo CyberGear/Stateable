@@ -19,10 +19,8 @@ public class AndroidBitmapModule extends SimpleModule {
                         BuildConfig.APPLICATION_ID
                 )
         );
-        addDeserializer(Bitmap.class, new BitmapDeserializer());
-        addSerializer(Bitmap.class, new BitmapSerializer());
-        // don't known if I need it yet
-//        addKeyDeserializer(Bitmap.class, new BitmapKeyDeserializer());
+        addDeserializer(Bitmap.class, new AndroidBitmapDeserializer());
+        addSerializer(Bitmap.class, new AndroidBitmapSerializer());
     }
 
     @Override

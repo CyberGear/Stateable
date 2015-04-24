@@ -14,7 +14,7 @@ import java.io.IOException;
 /**
  * Created by marius on 15.4.6.
  */
-public class BitmapDeserializer extends JsonDeserializer<Bitmap> {
+public class AndroidBitmapDeserializer extends JsonDeserializer<Bitmap> {
 
     @Override
     public Bitmap deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {

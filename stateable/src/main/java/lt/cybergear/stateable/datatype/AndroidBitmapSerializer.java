@@ -14,7 +14,7 @@ import java.io.IOException;
 /**
  * Created by marius on 15.4.6.
  */
-public class BitmapSerializer extends JsonSerializer<Bitmap> {
+public class AndroidBitmapSerializer extends JsonSerializer<Bitmap> {
 
     @Override
     public void serialize(Bitmap value, JsonGenerator gen, SerializerProvider serializers) throws IOException, JsonProcessingException {
