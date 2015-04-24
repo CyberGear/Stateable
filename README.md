@@ -43,7 +43,7 @@ module build.gradle
 ```Groovy
 dependencies {
     ...
-    compile 'lt.cybergear:stateable:0.0.2'
+    compile 'lt.cybergear:stateable:0.0.3'
 }
 ```
 
@@ -53,7 +53,7 @@ dependencies {
 public class MainActivity extends ActionBarActivity {
 
     @StateVariable
-    List<String> someVariableJouDontWantToLose;
+    List<String> someVariableYouDontWantToLose;
 
     @Override
     protected void onCreate(Bundle savedState) {
